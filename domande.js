@@ -10,7 +10,7 @@ const simulazioneCisia = {
             // --- SEZIONE 1: ASCOLTO ---
             ascolto: {
                 titolo: "Sezione 1a: Prova di Ascolto",
-                audioUrl: "audio/ascolto_p1.mp3",
+                audioUrl: "audio/audio1.mp3",
                 consegna: "Ascolta l'audio 'Un incontro all'università' e rispondi alle domande seguenti. Puoi ascoltare il brano al massimo due volte.",
                 domande: [
                     {
@@ -150,7 +150,7 @@ const simulazioneCisia = {
             // --- SEZIONE 1: ASCOLTO ---
             ascolto: {
                 titolo: "Sezione 2a: Prova di Ascolto",
-                audioUrl: "audio/ascolto_p2.mp3",
+                audioUrl: "audio/audio2.mp3",
                 consegna: "Ascolta il servizio del Giornale Radio sulla mobilità urbana e rispondi alle domande seguenti. Puoi ascoltare l'audio al massimo due volte.",
                 domande: [
                     {
@@ -290,7 +290,7 @@ const simulazioneCisia = {
             // --- SEZIONE 1: ASCOLTO ---
             ascolto: {
                 titolo: "Sezione 3a: Prova di Ascolto",
-                audioUrl: "audio/ascolto_p3.mp3",
+                audioUrl: "audio/audio3.mp3",
                 consegna: "Ascolta attentamente l'estratto della lezione accademica di linguistica cognitiva e rispondi ai quesiti. Puoi ascoltare il brano al massimo due volte.",
                 domande: [
                     {

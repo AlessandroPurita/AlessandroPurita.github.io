@@ -100,7 +100,7 @@
             margin-bottom: 40px;
         }
 
-        /* Box Testo di Lettura */
+        /* Box Testo di Lettura e Contenitori di Testo */
         .testo-lettura {
             background-color: #FFFDF5;
             border-left: 4px solid #D69E2E;
@@ -111,7 +111,6 @@
         }
 
         .testo-lettura h3, .testo-lettura h4 {
-            color: #B7791F;
             margin-bottom: 15px;
             font-size: 1.15rem;
         }
@@ -139,7 +138,7 @@
             margin-bottom: 15px;
         }
 
-        /* Opzioni di Risposta (Radio Button customizzati) */
+        /* Opzioni di Risposta (Radio Button) */
         .opzioni-container {
             display: flex;
             flex-direction: column;
@@ -170,20 +169,22 @@
             cursor: pointer;
         }
 
-        /* Bottone di Consegna */
+        /* Area dei bottoni di navigazione inferiore */
         .azione-container {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
             margin-top: 40px;
         }
 
         .btn-invia {
             background-color: var(--primary-color);
             color: white;
-            padding: 15px 40px;
+            padding: 12px 35px;
             border: none;
             border-radius: 30px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 86, 179, 0.2);
@@ -195,8 +196,65 @@
             transform: translateY(-1px);
         }
 
-        .btn-invia:active {
-            transform: translateY(1px);
+        .btn-nav {
+            background-color: #6c757d;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-nav:hover {
+            background-color: #5a6268;
+        }
+
+        /* Stile per le Textbox (Strutture Linguistiche) */
+        .input-spazio {
+            width: 70px;
+            padding: 4px 8px;
+            margin: 0 4px;
+            border: 2px solid #007bff;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1rem;
+            color: #0056b3;
+            background-color: #fff;
+            text-transform: uppercase;
+        }
+
+        .input-spazio:focus {
+            outline: none;
+            background-color: #e6f0fa;
+            border-color: #004085;
+            box-shadow: 0 0 4px rgba(0,123,255,0.5);
+        }
+
+        .box-aiuto-opzioni {
+            background-color: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Badge identificativo del livello (A1, A2, B1...) */
+        .badge-livello {
+            display: inline-block;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Responsive Design */
@@ -207,73 +265,17 @@
                 gap: 10px;
                 text-align: center;
             }
-            .sezione-esame {
+            .container {
+                margin: 15px auto;
+            }
+            .sezione-esame, .testo-lettura {
                 padding: 15px;
             }
-            .testo-lettura {
-                padding: 15px;
+            .azione-container {
+                flex-direction: column;
+                gap: 15px;
             }
         }
-		/* Aggiungi queste classi in fondo al tag <style> esistente di index.html */
-
-.btn-nav {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-nav:hover {
-    background-color: #5a6268;
-}
-
-/* Stile per le Textbox all'interno dei Microtesti */
-.input-spazio {
-    width: 65px;
-    padding: 4px 8px;
-    margin: 0 4px;
-    border: 2px solid #007bff;
-    border-radius: 4px;
-    font-weight: bold;
-    text-align: center;
-    font-size: 1rem;
-    color: #0056b3;
-    background-color: #fff;
-    text-transform: uppercase; /* Forza visivamente l'output in maiuscolo */
-}
-
-.input-spazio:focus {
-    outline: none;
-    background-color: #e6f0fa;
-    border-color: #004085;
-    box-shadow: 0 0 4px rgba(0,123,255,0.5);
-}
-
-.box-aiuto-opzioni {
-    background-color: #edf2f7;
-    border: 1px solid #cbd5e0;
-    border-radius: 6px;
-    padding: 15px;
-    margin-top: 15px;
-    font-size: 0.95rem;
-}
-
-.badge-livello {
-    display: inline-block;
-    background-color: #e2e8f0;
-    color: #4a5568;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-}
     </style>
 </head>
 <body>
@@ -284,20 +286,19 @@
 </header>
 
 <div class="container">
+    <!-- Box in cui apparirà il punteggio finale e l'accuratezza -->
     <div id="risultato"></div>
 
-    <form id="form-esame">
-        <div id="contenitore-esame">
-            <!-- Gestito interamente da app.js -->
-        </div>
+    <form id="form-esame" onsubmit="event.preventDefault();">
+        <!-- Area dinamica iniettata da app.js -->
+        <div id="contenitore-esame"></div>
         
-        <div class="azione-container" style="margin-top: 40px; display: flex; justify-content: space-between; width: 100%;">
-            <!-- Bottoni dinamici generati da aggiornaBottoniNavigazione() -->
-        </div>
+        <!-- Contenitore dei pulsanti di navigazione dinamici -->
+        <div class="azione-container"></div>
     </form>
 </div>
 
-<!-- Importazione dei componenti script nell'ordine corretto -->
+<!-- Caricamento degli script nell'ordine corretto di dipendenza -->
 <script src="domande.js"></script>
 <script src="app.js"></script>
 </body>

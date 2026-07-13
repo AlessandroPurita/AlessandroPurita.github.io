@@ -1,17 +1,27 @@
 let domandeAppiattite = [];
 let paginaCorrente = 0;
 let timerIntervallo = null;
-let tempoRimanente = 60 * 30; // 60 minuti
+let tempoRimanente = 60 * 30; // 30 minuti (modificabile a 60 * 60 se preferisci un'ora intera)
 
 document.addEventListener("DOMContentLoaded", () => {
     preparaDomande();
     mostraSchermataIniziale();
 });
 
-// Trasforma la struttura ad albero del PDF in un array lineare di pagine
+// Trasforma la struttura ad albero del file domande.js in un array lineare di pagine
 function preparaDomande() {
     simulazioneCisia.parti.forEach((parte) => {
-        // 1. Aggiungi la comprensione del testo come blocco unico o diviso
+        
+        // 1. Aggiungi la sezione Ascolto se presente nella parte corrente
+        if (parte.ascolto) {
+            domandeAppiattite.push({
+                tipo: 'ascolto',
+                livello: parte.livello,
+                ascolto: parte.ascolto
+            });
+        }
+
+        // 2. Aggiungi la comprensione del testo (Lettura)
         parte.comprensione.forEach((q) => {
             domandeAppiattite.push({
                 tipo: 'comprensione',
@@ -21,7 +31,7 @@ function preparaDomande() {
             });
         });
 
-        // 2. Aggiungi i microtesti delle strutture linguistiche
+        // 3. Aggiungi i microtesti delle strutture linguistiche
         if (parte.strutture) {
             parte.strutture.forEach((micro) => {
                 domandeAppiattite.push({
@@ -41,8 +51,8 @@ function mostraSchermataIniziale() {
     container.innerHTML = `
         <div style="text-align: center; padding: 40px 20px;">
             <h2 style="color: #0056b3; margin-bottom: 20px;">Benvenuto nella Simulazione CISIA ITA-L2</h2>
-            <p style="margin-bottom: 30px; color: #555;"> Il test è composto da domande di comprensione del testo e strutture linguistiche da completare.<br>
-            Avrai a disposizione <strong>60 minuti</strong> in totale. Il tempo partirà non appena premerai il tasto qui sotto.</p>
+            <p style="margin-bottom: 30px; color: #555;"> Il test è composto da domande di ascolto, comprensione del testo e strutture linguistiche da completare.<br>
+            Avrai a disposizione <strong>30 minuti</strong> in totale. Il tempo partirà non appena premerai il tasto qui sotto.</p>
             <button type="button" class="btn-invia" id="btn-avvia" onclick="iniziaEsame()">Avvia Test</button>
         </div>
     `;
@@ -61,7 +71,40 @@ function mostraPagina(indice) {
     const item = domandeAppiattite[paginaCorrente];
     let html = `<span class="badge-livello">${item.livello}</span>`;
 
-    if (item.tipo === 'comprensione') {
+    // CASO A: Sezione Ascolto
+    if (item.tipo === 'ascolto') {
+        html += `
+            <div class="testo-lettura" style="border-left-color: #E53E3E; background-color: #FFF5F5;">
+                <h3 style="color: #C53030;">${item.ascolto.titolo}</h3>
+                <p style="margin-bottom: 15px;"><em>${item.ascolto.consegna}</em></p>
+                
+                <!-- Player Audio Nativo Browser -->
+                <div style="margin: 20px 0; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #FEB2B2; display: inline-block;">
+                    <audio controls src="${item.ascolto.audioUrl}" style="display: block; width: 100%; min-width: 280px;"></audio>
+                </div>
+            </div>
+            
+            <!-- Ciclo domande dell'ascolto corrente -->
+            ${item.ascolto.domande.map((q) => `
+                <div class="blocco-domanda" id="blocco-${q.id}">
+                    <p><strong>${q.domanda}</strong></p>
+                    <div class="opzioni-container">
+                        ${Object.entries(q.opzioni).map(([chiave, valore]) => {
+                            const checked = salvataggioRisposte[q.id] === chiave ? 'checked' : '';
+                            return `
+                                <label class="opzione">
+                                    <input type="radio" name="${q.id}" value="${chiave}" ${checked} onchange="salvaRispostaRadio('${q.id}', '${chiave}')">
+                                    <strong>${chiave}.</strong> ${valore}
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        `;
+
+    // CASO B: Comprensione del Testo (Lettura)
+    } else if (item.tipo === 'comprensione') {
         html += `
             <div class="testo-lettura">
                 <h3>${item.lettura.titolo}</h3>
@@ -82,8 +125,9 @@ function mostraPagina(indice) {
                 </div>
             </div>
         `;
+
+    // CASO C: Strutture Linguistiche (Testo Bucato)
     } else if (item.tipo === 'struttura') {
-        // Sostituisce i placeholder _ (1) _ con dei campi di testo (textbox)
         let testoElaborato = item.testo_bucato;
         let elencoOpzioniHtml = `<div class="box-aiuto-opzioni"><strong>Opzioni disponibili da digitare:</strong><ul style="margin-top:5px; padding-left:20px;">`;
 
@@ -91,11 +135,9 @@ function mostraPagina(indice) {
             const valoreInserito = salvataggioRisposte[q.id] || '';
             const inputTxt = `<input type="text" class="input-spazio" id="input-${q.id}" value="${valoreInserito}" placeholder="(${q.spazio})" oninput="salvaRispostaTesto('${q.id}', this.value)">`;
             
-            // Regex per intercettare pattern dinamici come _ (1) _ o _ (2) _
             const regexPlaceholder = new RegExp(`_\\s*\\(${q.spazio}\\)\\s*_`, 'g');
             testoElaborato = testoElaborato.replace(regexPlaceholder, inputTxt);
 
-            // Genera specchietto delle opzioni A, B, C per aiutare lo studente
             const opzioniStringa = Object.entries(q.opzioni).map(([k, v]) => `${k}: ${v}`).join(' | ');
             elencoOpzioniHtml += `<li><strong>Spazio ${q.spazio}:</strong> ${opzioniStringa}</li>`;
         });
@@ -145,7 +187,6 @@ function avviaTimer() {
         minuti = minuti < 10 ? "0" + minuti : minuti;
         secondi = secondi < 10 ? "0" + secondi : secondi;
 
-        // RIGA CORRETTA:
         display.textContent = minuti + ":" + secondi;
 
         if (--tempoRimanente < 0) {
@@ -165,28 +206,50 @@ function valutaEsame() {
     let riepilogoHtml = `<div class="sezione-esame"><h2>Revisione Completa dell'Esame</h2>`;
 
     simulazioneCisia.parti.forEach((parte) => {
-        riepilogoHtml += `<h3 style="margin-top:20px; color:#0056b3;">${parte.livello}</h3>`;
+        riepilogoHtml += `<h3 style="margin-top:30px; color:#0056b3; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">${parte.livello}</h3>`;
 
-        // Verifica Comprensione
-        parte.comprensione.forEach((q) => {
-            totaleQuesiti++;
-            const dataData = salvataggioRisposte[q.id];
-            const esatta = dataData === q.rispostaCorretta;
-            if (esatta) punteggio++;
+        // 1. Revisione Sezione Ascolto
+        if (parte.ascolto) {
+            riepilogoHtml += `<h4 style="color:#C53030; margin: 15px 0 10px 0;">Ascolto: ${parte.ascolto.titolo}</h4>`;
+            parte.ascolto.domande.forEach((q) => {
+                totaleQuesiti++;
+                const dataData = salvataggioRisposte[q.id];
+                const esatta = dataData === q.rispostaCorretta;
+                if (esatta) punteggio++;
 
-            riepilogoHtml += `
-                <div class="blocco-domanda" style="background-color: ${esatta ? '#d4edda' : '#f8d7da'}; margin-bottom:10px;">
-                    <p><strong>${q.domanda}</strong></p>
-                    <p>Tua risposta: <strong>${dataData || 'Nessuna'}</strong> | Risposta corretta: <strong>${q.rispostaCorretta}</strong></p>
-                    <p style="font-style:italic; font-size:0.9rem; color:#444;">${q.spiegazione || ''}</p>
-                </div>
-            `;
-        });
+                riepilogoHtml += `
+                    <div class="blocco-domanda" style="background-color: ${esatta ? '#d4edda' : '#f8d7da'}; margin-bottom:10px;">
+                        <p><strong>${q.domanda}</strong></p>
+                        <p>Tua risposta: <strong>${dataData || 'Nessuna'}</strong> | Risposta corretta: <strong>${q.rispostaCorretta}</strong></p>
+                    </div>
+                `;
+            });
+        }
 
-        // Verifica Strutture
+        // 2. Revisione Comprensione del Testo (Lettura)
+        if (parte.comprensione && parte.comprensione.length > 0) {
+            riepilogoHtml += `<h4 style="color:#B7791F; margin: 20px 0 10px 0;">Lettura: ${parte.lettura.titolo}</h4>`;
+            parte.comprensione.forEach((q) => {
+                totaleQuesiti++;
+                const dataData = salvataggioRisposte[q.id];
+                const esatta = dataData === q.rispostaCorretta;
+                if (esatta) punteggio++;
+
+                riepilogoHtml += `
+                    <div class="blocco-domanda" style="background-color: ${esatta ? '#d4edda' : '#f8d7da'}; margin-bottom:10px;">
+                        <p><strong>${q.domanda}</strong></p>
+                        <p>Tua risposta: <strong>${dataData || 'Nessuna'}</strong> | Risposta corretta: <strong>${q.rispostaCorretta}</strong></p>
+                        ${q.spiegazione ? `<p style="font-style:italic; font-size:0.9rem; color:#444; margin-top: 5px;">${q.spiegazione}</p>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        // 3. Revisione Strutture Linguistiche
         if (parte.strutture) {
+            riepilogoHtml += `<h4 style="color:#007bff; margin: 20px 0 10px 0;">Strutture Linguistiche</h4>`;
             parte.strutture.forEach((micro) => {
-                riepilogoHtml += `<div class="blocco-domanda" style="background:#fff; border-left:4px solid #007bff;"><strong>${micro.titolo}</strong><br><br>`;
+                riepilogoHtml += `<div class="blocco-domanda" style="background:#fff; border-left:4px solid #007bff; margin-bottom: 15px;"><strong>${micro.titolo}</strong><br><br>`;
                 micro.quesiti.forEach((q) => {
                     totaleQuesiti++;
                     const dataData = (salvataggioRisposte[q.id] || '').toUpperCase();
@@ -195,7 +258,7 @@ function valutaEsame() {
 
                     riepilogoHtml += `
                         <div style="padding:5px 10px; margin:5px 0; background:${esatta ? '#d4edda' : '#f8d7da'}; border-radius:4px;">
-                            Spazio (${q.spazio}) -> Tua inserita: <strong>${dataData || 'Vuoto'}</strong> | Corretta: <strong>${q.rispostaCorretta}</strong> (${q.opzioni[q.rispostaCorretta]})
+                            Spazio (${q.spazio}) -> Tua risposta: <strong>${dataData || 'Vuoto'}</strong> | Corretta: <strong>${q.rispostaCorretta}</strong> (${q.opzioni[q.rispostaCorretta]})
                         </div>
                     `;
                 });
@@ -206,6 +269,7 @@ function valutaEsame() {
 
     riepilogoHtml += `</div>`;
 
+    // Generazione del box di riepilogo in alto
     const output = document.getElementById("risultato");
     output.style.display = "block";
     output.style.backgroundColor = "#e2e3e5";
